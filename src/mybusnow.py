@@ -1,37 +1,26 @@
 '''
 The information we need to fetch out of this page.
 
+We'll create an ES index per month, if the data gets too huge, then might move it to a smaller set.
+Also the shard count is set to 1 for now.
 
-Selected Route: 308
-Selected Direction: Newark and New Y
-Selected Stop: PROSPECT ST + WOODVALE RD
-Selected Stop Number: 12067
-Current Date: Mar 16, 2016 (EST) - # get in iso format
-Current Time: 5:19 PM
-Bus Route Name: To 164 NEW YORK
-Bus Route Number: #164
-Bus Number (Bus 7741)
-ETA: 19 MIN
 '''
 
 import re
-from bs4 import BeautifulSoup, NavigableString
+import time
+from time import strftime
+
+from bs4 import BeautifulSoup
+from elasticsearch import Elasticsearch
 
 # http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&id=12067
-BASE_URL = 'http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp'
-
-
-def strip_html_whitespace(html_text):
-    """
-        Whitespace in the HTML obtained is a pain when scanning for next_sibling
-        Clean up
-    """
-    html_text = re.sub(">\s*", ">", html_text)
-    html_text = re.sub("\s*<", "<", html_text)
-    return html_text
-
+BASE_URL = 'http://mybusnow.njtransit.com/bustime/wireless/html/eta2.jsp'
+INDEX_PREFIX = 'mybusnow'
+INDEX_NAME = INDEX_PREFIX + '-' + strftime("%Y-%m", time.localtime())
+STOP_IDS = {12067}
 
 def parse_html():
+    mybusnow_json = '{'
     # html_page = requests.get(BASE_URL)
     html_page = open("../test/eta.html", "r")
     html_text = html_page.read()
@@ -40,15 +29,20 @@ def parse_html():
 
     # First parse all the bus related information.
     ps = soup.find_all('p', limit=3)
-    parse_rt_info(ps)
+    mybusnow_json = parse_rt_info(mybusnow_json, ps)
 
     # <hr/> works as line seperators between buses, so that can be used to demarcate buses.
     hrs = soup.find_all('hr')
-    parse_bus(hrs)
+    mybusnow_json += '"buses": ['
+    mybusnow_json = parse_bus(mybusnow_json, hrs)
+    mybusnow_json += "]"
+    mybusnow_json += "}"
+    print(mybusnow_json)
+
     print('===========================================')
 
 
-def parse_rt_info(ps):
+def parse_rt_info(mybusnow_json, ps):
     """
     count = 0 - skip
     count = 1 - Time
@@ -64,28 +58,31 @@ def parse_rt_info(ps):
             count += 1
             continue
 
+        # Put all the document header info here;
         if count == 1:
             count += 1
             currently = p.next_element
-            print(currently)
+            mybusnow_json += '"request_datetime":' + '"' + strftime("%Y-%m-%dT%H:%M%Z", time.localtime()) + '",'
+            mybusnow_json += '"page_time":' + '"' + currently[10:].strip() + '",'
+
             continue
 
         if count == 2:
             count += 1
 
             rt = p.next_element
-            print(rt)
-            direction = rt.next_sibling.next_element
-            print(direction)
-            stop = direction.next_sibling.next_element
-            print(stop)
-            stop_no = stop.next_sibling.next_element
-            print(stop_no)
+            # mybusnow_json += '"selected_route":' + '' + rt[15:].strip() + ','
+            # direction = rt.next_sibling.next_element
+            # mybusnow_json += '"selected_direction":' + '"' + direction[19:].strip() + '",'
+            # stop = direction.next_sibling.next_element
+            mybusnow_json += '"selected_stop":' + '"' + rt[14:].strip() + '",'
+            stop_no = rt.next_sibling.next_element
+            mybusnow_json += '"selected_stop_number":' + '' + stop_no[16:].strip() + ','
 
-        print('xxxxxxxxxxxx')
+    return mybusnow_json
 
 
-def parse_bus(hrs):
+def parse_bus(mybusnow_json, hrs):
     """
     This is a little manual more than programatic, need to get better at regex to parse this cleaner, it does next_sibling and on to parse the info and get it.
     :param hrs:
@@ -99,17 +96,39 @@ def parse_bus(hrs):
         # After the last hr, it is just links to the page.
         if count == hr_size - 1:
             break
-
+        mybusnow_json += '{'
         bus_rt_no = hr.next_sibling
-        print(bus_rt_no.text)
+        mybusnow_json += '"bus_route_number":' + '' + bus_rt_no.text[1:].strip() + ','
         bus_rt_name = bus_rt_no.next_sibling
-        print(bus_rt_name)
+        mybusnow_json += '"bus_route_name":' + '"' + bus_rt_name.strip() + '",'
         bus_eta = bus_rt_name.next_sibling
-        print(bus_eta.text)
+
+        # warning: sometimes the eta is also shown as < 1 min, need to handle that scenario still.
+        mybusnow_json += '"eta":' + '' + bus_eta.text[:-3].strip() + ','
         bus_no = bus_eta.next_sibling.next_sibling.text
-        print(bus_no)
-        print('~~~~~~~~~~~~~~~~~~~')
+        mybusnow_json += '"bus_no":' + '' + bus_no[5:-1].strip() + ''
+        mybusnow_json += '}'
+        if count < hr_size - 2:
+            mybusnow_json += ','
         count += 1
 
+    return mybusnow_json
 
-parse_html()
+
+def strip_html_whitespace(html_text):
+    """
+        Whitespace in the HTML obtained is a pain when scanning for next_sibling
+        Clean up
+    """
+    html_text = re.sub(">\s*", ">", html_text)
+    html_text = re.sub("\s*<", "<", html_text)
+    return html_text
+
+
+# init elasticsearch
+es = Elasticsearch(['localhost:9200'])
+# Create index for the day. 400 is an exception if index already exists.
+es.indices.create(index=INDEX_NAME, ignore=400)
+es.create(index=INDEX_NAME, body=)
+
+print(parse_html())
