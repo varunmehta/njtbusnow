@@ -4,26 +4,37 @@ The information we need to fetch out of this page.
 We'll create an ES index per month, if the data gets too huge, then might move it to a smaller set.
 Also the shard count is set to 1 for now.
 
+Cron configuration
+==================
+
+# The cron job is supposed to run every minute from 5am to 11am
+
+1 5-11 * * * /path/to/python file
+
+
+
+
 '''
 
 import re
 import time
 from time import strftime
 
+import requests
 from bs4 import BeautifulSoup
-from elasticsearch import Elasticsearch
 
-# http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&id=12067
-BASE_URL = 'http://mybusnow.njtransit.com/bustime/wireless/html/eta2.jsp'
+BASE_URL = 'http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&id='
 INDEX_PREFIX = 'mybusnow'
 INDEX_NAME = INDEX_PREFIX + '-' + strftime("%Y-%m", time.localtime())
-STOP_IDS = {12067}
+STOP_IDS = [12648, 12655, 13371, 12049, 12070, 12046, 12067, 11787, 11791, 31858]
 
-def parse_html():
+
+def parse_html(stop_id):
     mybusnow_json = '{'
-    # html_page = requests.get(BASE_URL)
-    html_page = open("../test/eta.html", "r")
-    html_text = html_page.read()
+    print(BASE_URL + str(stop_id))
+    html_page = requests.get(BASE_URL + str(stop_id))
+    # html_page = open("../test/eta.html", "r")
+    html_text = html_page.text
     html_text = strip_html_whitespace(html_text)
     soup = BeautifulSoup(html_text, "lxml")
 
@@ -37,9 +48,8 @@ def parse_html():
     mybusnow_json = parse_bus(mybusnow_json, hrs)
     mybusnow_json += "]"
     mybusnow_json += "}"
-    print(mybusnow_json)
 
-    print('===========================================')
+    return mybusnow_json
 
 
 def parse_rt_info(mybusnow_json, ps):
@@ -98,6 +108,11 @@ def parse_bus(mybusnow_json, hrs):
             break
         mybusnow_json += '{'
         bus_rt_no = hr.next_sibling
+        if ('No arrival times available') in bus_rt_no or (
+        'No service is scheduled for this stop at this time') in bus_rt_no:
+            mybusnow_json += '}'
+            break
+
         mybusnow_json += '"bus_route_number":' + '' + bus_rt_no.text[1:].strip() + ','
         bus_rt_name = bus_rt_no.next_sibling
         mybusnow_json += '"bus_route_name":' + '"' + bus_rt_name.strip() + '",'
@@ -126,9 +141,14 @@ def strip_html_whitespace(html_text):
 
 
 # init elasticsearch
-es = Elasticsearch(['localhost:9200'])
+# es = Elasticsearch(['localhost:9200'])
 # Create index for the day. 400 is an exception if index already exists.
-es.indices.create(index=INDEX_NAME, ignore=400)
-es.create(index=INDEX_NAME, body=)
+# es.indices.create(index=INDEX_NAME, ignore=400)
 
-print(parse_html())
+for stop in STOP_IDS:
+    json_string = parse_html(stop)
+    print(json_string)
+    print('===========================================')
+
+    #   es.create(index=INDEX_NAME, body=json_string)
+    time.sleep(1)
