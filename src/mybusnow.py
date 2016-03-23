@@ -1,17 +1,6 @@
 '''
-The information we need to fetch out of this page.
 
-We'll create an ES index per month, if the data gets too huge, then might move it to a smaller set.
-Also the shard count is set to 1 for now.
-
-Cron configuration
-==================
-
-# The cron job is supposed to run every minute from 5am to 11am
-
-1 5-11 * * * /path/to/python file
-
-
+Read the README.md
 
 
 '''
@@ -54,6 +43,8 @@ def parse_html(stop_id):
 
 def parse_rt_info(mybusnow_json, ps):
     """
+    Crude way to parse
+
     count = 0 - skip
     count = 1 - Time
     count = 2 - Route info
@@ -94,7 +85,9 @@ def parse_rt_info(mybusnow_json, ps):
 
 def parse_bus(mybusnow_json, hrs):
     """
-    This is a little manual more than programatic, need to get better at regex to parse this cleaner, it does next_sibling and on to parse the info and get it.
+    This is a little more manual than programatic, need to get better at regex to parse this cleaner,
+    it does next_sibling and on to parse the info and get it.
+
     :param hrs:
     :return:
     """
@@ -108,8 +101,8 @@ def parse_bus(mybusnow_json, hrs):
             break
         mybusnow_json += '{'
         bus_rt_no = hr.next_sibling
-        if ('No arrival times available') in bus_rt_no or (
-        'No service is scheduled for this stop at this time') in bus_rt_no:
+        if 'No arrival times available' in bus_rt_no or \
+                        'No service is scheduled for this stop at this time' in bus_rt_no:
             mybusnow_json += '}'
             break
 

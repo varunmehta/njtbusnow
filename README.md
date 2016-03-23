@@ -21,6 +21,19 @@ Since we want things to be fast, we use lxml as the html parser
 
 You have to install Elasticsearch on your local n/w and persist data to that.
 
+## Cron Configuration
+
+First bus on my route is at 5:12 am, so the cron job is supposed to run every minute from 5am to 11am, with a 1 second 
+sleep between each stop, if I get banned will move it up to 3-5 seconds with a random in middle. 
+
+Cron Tab
+```
+1 5-11 * * * /path/to/python file
+```
+
+## Elasticsearch
+Will create an ES index per month, if the data gets too huge, then might move it to a smaller set.
+Also the shard count is set to 1 for now. ES is installed on Raspberry Pi I'm not going to detail that, please google on how to set that up.
 
 ## TODO 
 
