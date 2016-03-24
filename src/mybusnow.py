@@ -11,6 +11,7 @@ from time import strftime
 
 import requests
 from bs4 import BeautifulSoup
+from elasticsearch import Elasticsearch
 
 BASE_URL = 'http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&id='
 INDEX_PREFIX = 'mybusnow'
@@ -134,9 +135,9 @@ def strip_html_whitespace(html_text):
 
 
 # init elasticsearch
-# es = Elasticsearch(['localhost:9200'])
+es = Elasticsearch(['localhost:9200'])
 # Create index for the day. 400 is an exception if index already exists.
-# es.indices.create(index=INDEX_NAME, ignore=400)
+es.indices.create(index=INDEX_NAME, ignore=400)
 
 for stop in STOP_IDS:
     json_string = parse_html(stop)
