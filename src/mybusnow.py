@@ -103,7 +103,7 @@ def parse_bus(mybusnow_json, hrs):
         mybusnow_json += '{'
         bus_rt_no = hr.next_sibling
         if 'No arrival times available' in bus_rt_no or \
-                        'No service is scheduled for this stop at this time' in bus_rt_no:
+                        'No service is scheduled for this stop at this time' in bus_rt_no.text:
             mybusnow_json += '}'
             break
 
@@ -135,7 +135,7 @@ def strip_html_whitespace(html_text):
 
 
 # init elasticsearch
-es = Elasticsearch(['localhost:9200'])
+es = Elasticsearch(['192.168.0.104:9200'])
 # Create index for the day. 400 is an exception if index already exists.
 es.indices.create(index=INDEX_NAME, ignore=400)
 
