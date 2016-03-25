@@ -21,6 +21,15 @@ Since we want things to be fast, we use lxml as the html parser
 
 You have to install Elasticsearch on your local n/w and persist data to that.
 
+### lxml 
+
+pip lxml might not work on raspberry pi, in that case use the installation from apt-get 
+
+```
+ $ sudo apt-get install python-lxml
+```
+
+
 ## Cron Configuration
 
 First bus on my route is at 5:12 am, so the cron job is supposed to run every minute from 5am to 11am, with a 1 second 
