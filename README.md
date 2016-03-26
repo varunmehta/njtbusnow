@@ -35,7 +35,14 @@ pip lxml might not work on raspberry pi, in that case use the installation from 
 First bus on my route is at 5:12 am, so the cron job is supposed to run every minute from 5am to 11am, with a 1 second 
 sleep between each stop, if I get banned will move it up to 3-5 seconds with a random in middle. 
 
-Cron Tab
+### Add job to crontab
+
+```
+crontab -e
+```
+
+Add this line (if you need to know about the cron job pattern, then man it)
+
 ```
 1 5-11 * * * /path/to/python file
 ```
@@ -43,6 +50,9 @@ Cron Tab
 ## Elasticsearch
 Will create an ES index per month, if the data gets too huge, then might move it to a smaller set.
 Also the shard count is set to 1 for now. ES is installed on Raspberry Pi I'm not going to detail that, please google on how to set that up.
+
+### Delay in starting up
+ES take some time to startup, it is not as snappy as a desktop. If you do a restart, it'll take a few minutes (3-5 minutes) for the server to be made available. Review your logs to check if the server is up.
 
 ## TODO 
 

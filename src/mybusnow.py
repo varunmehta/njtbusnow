@@ -135,7 +135,7 @@ def strip_html_whitespace(html_text):
 
 
 # init elasticsearch
-es = Elasticsearch(['192.168.0.104:9200'])
+es = Elasticsearch(['localhost:9200'])
 # Create index for the day. 400 is an exception if index already exists.
 es.indices.create(index=INDEX_NAME, ignore=400)
 
