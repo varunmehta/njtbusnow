@@ -143,6 +143,5 @@ for stop in STOP_IDS:
     json_string = parse_html(stop)
     print(json_string)
     print('===========================================')
-
-    #   es.create(index=INDEX_NAME, body=json_string)
+    es.create(index=INDEX_NAME, body=json_string)
     time.sleep(1)
