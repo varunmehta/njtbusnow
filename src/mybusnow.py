@@ -5,6 +5,7 @@ Read the README.md
 
 '''
 
+import random
 import re
 import time
 from time import strftime
@@ -141,7 +142,7 @@ es.indices.create(index=INDEX_NAME, ignore=400)
 
 for stop in STOP_IDS:
     json_string = parse_html(stop)
-    print(json_string)
-    print('===========================================')
-    es.create(index=INDEX_NAME, body=json_string)
+    # print(json_string)
+    # print('===========================================')
+    es.index(index=INDEX_NAME, doc_type='buses', id=random.getrandbits(9), body=json_string)
     time.sleep(1)
