@@ -6,6 +6,13 @@ The idea is to identify which is the best bus to catch in the morning when you a
 Thinking to add more reference points, where I can add PABT bus alerts or traffic alerts for the route I'm checking. 
   
 As of now the code is very specific to my bus and my bus's route, if you are interested, then you can fork and modify for your buses. 
+
+## Bus Stops Being Monitored
+
+```
+12648, 12655, 13371, 12049, 12070, 12046, 12067, 11787, 11791, 31858
+```
+
   
 The code is run on RaspberryPi (Model B - 512MB), as part of a cron job.   
 
@@ -46,6 +53,14 @@ Add this line (if you need to know about the cron job pattern, then man it)
 ```
 1 5-11 * * * /path/to/python file
 ```
+
+### Debugging Cron Jobs
+Cron jobs are not always working as expected, and we spend some time trying to figure why they are not working, here is a very useful link on the askubuntu forums about it. 
+
+http://askubuntu.com/questions/23009/reasons-why-crontab-does-not-work 
+
+Read thru the link before getting frustrated and trying to figure why a certain configuration is not working.
+
 
 ## Elasticsearch
 Will create an ES index per month, if the data gets too huge, then might move it to a smaller set.

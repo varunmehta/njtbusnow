@@ -22,7 +22,7 @@ STOP_IDS = [12648, 12655, 13371, 12049, 12070, 12046, 12067, 11787, 11791, 31858
 
 def parse_html(stop_id):
     mybusnow_json = '{'
-    print(BASE_URL + str(stop_id))
+    # print(BASE_URL + str(stop_id))
     html_page = requests.get(BASE_URL + str(stop_id))
     # html_page = open("../test/eta.html", "r")
     html_text = html_page.text
@@ -114,7 +114,12 @@ def parse_bus(mybusnow_json, hrs):
         bus_eta = bus_rt_name.next_sibling
 
         # warning: sometimes the eta is also shown as < 1 min, need to handle that scenario still.
-        mybusnow_json += '"eta":' + '' + bus_eta.text[:-3].strip() + ','
+        if 'DELAYED' in bus_eta.text:
+            mybusnow_json += '"eta":' + '-99,'
+        elif '< 1 MIN' in bus_eta.text:
+            mybusnow_json += '"eta":' + '0,'
+        else:
+            mybusnow_json += '"eta":' + '' + bus_eta.text[:-3].strip() + ','
         bus_no = bus_eta.next_sibling.next_sibling.text
         mybusnow_json += '"bus_no":' + '' + bus_no[5:-1].strip() + ''
         mybusnow_json += '}'
