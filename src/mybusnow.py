@@ -152,4 +152,5 @@ for stop in STOP_IDS:
     print('.'),
     es.index(index=INDEX_NAME, doc_type='buses', id=random.getrandbits(9), body=json_string)
     time.sleep(1)
+
 print('.done')
