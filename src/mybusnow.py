@@ -149,5 +149,7 @@ for stop in STOP_IDS:
     json_string = parse_html(stop)
     # print(json_string)
     # print('===========================================')
+    print('.'),
     es.index(index=INDEX_NAME, doc_type='buses', id=random.getrandbits(9), body=json_string)
     time.sleep(1)
+print('.done')
