@@ -115,9 +115,9 @@ def parse_bus(mybusnow_json, hrs):
 
         # warning: sometimes the eta is also shown as < 1 min, need to handle that scenario still.
         if 'DELAYED' in bus_eta.text:
-            mybusnow_json += '"eta":' + '-99,'
+            mybusnow_json += '"eta":' + -99 + ','
         elif '< 1 MIN' in bus_eta.text:
-            mybusnow_json += '"eta":' + '0,'
+            mybusnow_json += '"eta":' + 0 + ','
         else:
             mybusnow_json += '"eta":' + '' + bus_eta.text[:-3].strip() + ','
         bus_no = bus_eta.next_sibling.next_sibling.text
