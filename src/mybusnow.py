@@ -115,9 +115,9 @@ def parse_bus(mybusnow_json, hrs):
 
         # warning: sometimes the eta is also shown as < 1 min, need to handle that scenario still.
         if 'DELAYED' in bus_eta.text:
-            mybusnow_json += '"eta":' + -99 + ','
-        elif '< 1 MIN' in bus_eta.text:
-            mybusnow_json += '"eta":' + 0 + ','
+            mybusnow_json += '"eta": -99,'
+        elif '< 1 MIN' in bus_eta.text or not bus_eta.text:
+            mybusnow_json += '"eta": 0,'
         else:
             mybusnow_json += '"eta":' + '' + bus_eta.text[:-3].strip() + ','
         bus_no = bus_eta.next_sibling.next_sibling.text
@@ -143,14 +143,15 @@ def strip_html_whitespace(html_text):
 # init elasticsearch
 es = Elasticsearch(['localhost:9200'])
 # Create index for the day. 400 is an exception if index already exists.
-es.indices.create(index=INDEX_NAME, ignore=400)
+# Skip index creation, as this is not needed, commenting out for now.
+# es.indices.create(index=INDEX_NAME, ignore=400)
 
 for stop in STOP_IDS:
     json_string = parse_html(stop)
     # print(json_string)
     # print('===========================================')
-    print('.'),
+    # print('.'),
     es.index(index=INDEX_NAME, doc_type='buses', id=random.getrandbits(9), body=json_string)
     time.sleep(1)
 
-print('.done')
+# print('.done')
