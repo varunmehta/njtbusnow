@@ -51,7 +51,7 @@ crontab -e
 Add this line (if you need to know about the cron job pattern, then man it)
 
 ```
-1 5-11 * * * /path/to/python file
+*/1 5-11 * * * /path/to/python file
 ```
 
 ### Debugging Cron Jobs
